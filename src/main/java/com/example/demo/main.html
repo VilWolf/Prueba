@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Splitter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #output { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Dividir Archivo en Segmentos</h2>
+    <input type="file" id="fileInput">
+    <input type="number" id="segmentSize" placeholder="Tamaño en bytes">
+    <button onclick="uploadFile()">Procesar</button>
+    <p id="status"></p>
+    <div id="output"></div>
+
+    <h2>Enviar Segmentos por Email</h2>
+    <input type="email" id="email" placeholder="Correo destinatario">
+    <button onclick="sendEmail()">Enviar Email</button>
+
+    <script>
+        let segments = [];
+
+        function uploadFile() {
+            let fileInput = document.getElementById('fileInput').files[0];
+            let segmentSize = document.getElementById('segmentSize').value;
+            if (!fileInput || !segmentSize) {
+                alert("Seleccione un archivo y defina el tamaño del segmento");
+                return;
+            }
+            
+            let formData = new FormData();
+            formData.append("file", fileInput);
+            formData.append("size", segmentSize);
+            
+            document.getElementById('status').innerText = "Procesando archivo...";
+            
+            fetch("/file/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('status').innerText = "Archivo procesado.";
+                let output = document.getElementById('output');
+                output.innerHTML = "<h3>Segmentos generados:</h3>";
+                segments = data;
+                data.forEach(segment => {
+                    output.innerHTML += `<a href="/file/download/${segment}" download>${segment}</a><br>`;
+                });
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function sendEmail() {
+            let email = document.getElementById('email').value;
+            if (!email || segments.length === 0) {
+                alert("Ingrese un correo y genere segmentos antes de enviar.");
+                return;
+            }
+            
+            let formData = new FormData();
+            formData.append("recipient", email);
+            segments.forEach(segment => formData.append("files", segment));
+            
+            fetch("/file/send-email", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
