@@ -18,8 +18,15 @@ import java.util.Properties;
 @RequestMapping("/file")
 public class MainClass {
 
+    private static final String UPLOAD_DIR = "uploads"; // Directorio donde se guardan los segmentos
+
     public static void main(String[] args) {
         SpringApplication.run(MainClass.class, args);
+
+        File dir = new File(UPLOAD_DIR);
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
     }
 
     @PostMapping("/upload")
@@ -60,10 +67,12 @@ public class MainClass {
         String senderEmail = "your_email@example.com";
         String senderPassword = "your_password";
         Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.example.com");
+        props.put("mail.smtp.host", "smtp.googlemail.com");
         props.put("mail.smtp.port", "587");
         props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.ssl.trust", "stmp.gmail.com");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smpt.ssl.enable", "false");
 
         Session session = Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -90,6 +99,28 @@ public class MainClass {
         } catch (Exception e) {
             e.printStackTrace();
             return "Error enviando el email.";
+        }
+    }
+
+    @PostMapping("/merge")
+    public String mergeFiles(@RequestParam("baseName") String baseName, @RequestParam("extension") String extension, @RequestParam("segments") int numSegments) {
+        try {
+            Path mergedFilePath = Paths.get(UPLOAD_DIR, baseName + extension); // Guardar el archivo fusionado en uploads
+            try (OutputStream outputStream = new FileOutputStream(mergedFilePath.toFile())) {
+                for (int i = 0; i < numSegments; i++) {
+                    Path segmentPath = Paths.get(UPLOAD_DIR, baseName + "." + i + extension); // Buscar segmentos en uploads
+                    if (Files.exists(segmentPath)) {
+                        byte[] segmentBytes = Files.readAllBytes(segmentPath);
+                        outputStream.write(segmentBytes);
+                    } else {
+                        return "Error: No se encontró el segmento " + i;
+                    }
+                }
+            }
+            return "Archivo reconstruido: " + mergedFilePath.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error al reconstruir el archivo.";
         }
     }
 }

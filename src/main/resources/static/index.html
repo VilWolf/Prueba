@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Splitter</title>
+</head>
+<body>
+    <h1>Dividir y Unir Archivos</h1>
+    
+    <h2>Subir Archivo</h2>
+    <input type="file" id="fileInput">
+    <input type="number" id="segmentSize" placeholder="Tamaño del segmento (bytes)">
+    <button onclick="uploadFile()">Subir y Dividir</button>
+    
+    <h2>Segmentos Generados</h2>
+    <ul id="segmentList"></ul>
+    
+    <h2>Unir Archivo</h2>
+    <input type="text" id="baseName" placeholder="Nombre base">
+    <input type="text" id="extension" placeholder="Extensión (ej: .pdf)">
+    <input type="number" id="numSegments" placeholder="Número de segmentos">
+    <button onclick="mergeFiles()">Unir Archivo</button>
+    
+    <p id="mergeResult"></p>
+    
+    <h2>Enviar por Email</h2>
+    <input type="email" id="emailRecipient" placeholder="Correo del receptor">
+    <button onclick="sendEmail()">Enviar Segments por Email</button>
+    
+    <p id="emailResult"></p>
+    
+    <script>
+        function uploadFile() {
+            let file = document.getElementById('fileInput').files[0];
+            let segmentSize = document.getElementById('segmentSize').value;
+            let formData = new FormData();
+            formData.append('file', file);
+            formData.append('size', segmentSize);
+            
+            fetch('/file/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                let list = document.getElementById('segmentList');
+                list.innerHTML = '';
+                data.forEach(segment => {
+                    let li = document.createElement('li');
+                    
+                    // Crear un enlace para descargar el segmento en el mismo nombre del segmento
+                    let downloadLink = document.createElement('a');
+                    downloadLink.href = `/file/download/${segment}`;
+                    downloadLink.textContent = segment;
+                    downloadLink.setAttribute('target', '_blank');
+                    
+                    li.appendChild(downloadLink);
+                    list.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function mergeFiles() {
+            let baseName = document.getElementById('baseName').value;
+            let extension = document.getElementById('extension').value;
+            let numSegments = document.getElementById('numSegments').value;
+            
+            let formData = new FormData();
+            formData.append('baseName', baseName);
+            formData.append('extension', extension);
+            formData.append('segments', numSegments);
+            
+            fetch('/file/merge', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('mergeResult').textContent = data;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function sendEmail() {
+            let recipient = document.getElementById('emailRecipient').value;
+            let segments = [];
+            let segmentList = document.getElementById('segmentList').children;
+            for (let i = 0; i < segmentList.length; i++) {
+                segments.push(segmentList[i].textContent.trim());
+            }
+
+            let formData = new FormData();
+            formData.append('recipient', recipient);
+            formData.append('files', JSON.stringify(segments));
+
+            fetch('/file/send-email', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('emailResult').textContent = data;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
