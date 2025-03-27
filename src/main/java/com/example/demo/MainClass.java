@@ -16,10 +16,10 @@ import java.util.Properties;
 @SpringBootApplication
 @RestController
 @RequestMapping("/file")
-public class FileSplitterApp {
+public class MainClass {
 
     public static void main(String[] args) {
-        SpringApplication.run(FileSplitterApp.class, args);
+        SpringApplication.run(MainClass.class, args);
     }
 
     @PostMapping("/upload")
