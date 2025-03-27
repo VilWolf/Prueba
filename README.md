@@ -1,5 +1,18 @@
 # PASOS DE USO
 - Se debe tener Java 17 instalado
-- Se creo el proyecto base con Spring Initializr con las dependencias necesarias
-    - Dependencias: Spring Starter Web(Para facil integracion con front), Spring DevTools(Herramientas que facilitan el desarrollo)
-- 
+- Se debe habilitar ssl y ttsl
+- Se creo el proyecto Java base con Spring Initializr con las dependencias necesarias
+    - Dependencias:
+        - Spring Starter Web(Para facil integracion con front) 
+        - Spring DevTools(Herramientas que facilitan el desarrollo)
+        - Spring Boot Starter(Dependencias basicas de Spring boot)
+        - Spring Boot starter WebFlux(Crear aplicaciones web reactivas)
+        - Javax mail(Depenecia de Servicio local de mail)
+- Se utiliza spring boot para bootear la aplicacion
+- http://localhost:8080/index.html   (Para acceder a la aplicacion desde front)
+- Se puede agregar archivos usando el boton o arrastrando
+- Se asigna la cantidad de bytes en las que se dividira el archivo y se presiona el boton "Subir y Dividir"
+- Se listaran la cantidad de segmentos divididos
+- Para reunir el archivo se llenan los campos "Nombre base"(nombre del archivo final nuevamente), la extencion del archivo, y el numero de segmentos a los cuales se querra dividir, en caso de regenerase es solo 1, esto recreara el archivo en una carpeta hermana llamada "uploads" donde se subira agregara este archivo final
+- Para enviar por email se debe agregar el email receptor en el campo y presionar el boton, se tienen que habilitar las configuraciones mas arriba o el servicio no funcionara
+- Para mas detalles en el repositorio: https://github.com/VilWolf/Prueba
